@@ -31,7 +31,7 @@ var config = {
 		position: 'top_center',
 		header:"전 사진 ! ",
 		config: {
-			imagePaths: ['modules/MMM-Testpython/before']
+			imagePaths: ['modules/MMM-BeforeAfter/before']
 		}
 	},
 	{
@@ -39,7 +39,7 @@ var config = {
 		position: 'top_center',
 		header:"후 사진! ",
 		config: {
-			imagePaths: ['modules/MMM-Testpython/before']
+			imagePaths: ['modules/MMM-BeforeAfter/before']
 		}
 	},
 		
@@ -75,7 +75,7 @@ var config = {
 		
 
 		{
-			module: "MMM-Testpython",
+			module: "MMM-BeforeAfter",
 			position: "top_right",
 			config:{
 				foo:"yellow"
