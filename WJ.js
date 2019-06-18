@@ -1264,7 +1264,7 @@ if (typeof module !== "undefined") {module.exports = config;}
 
 //홈화면 clock / currentweather / weatherforecast / Globe / newsfeed
 
-- Clock
+- Clock/clock.js
 //현재 시간 표시
 Module.register("clock",{
 	// Module config defaults.
@@ -1507,7 +1507,7 @@ Module.register("clock",{
 
 - Weather
 //날씨 정보 (현재, 한 주)
-- currentweather
+- currentweather/currentweather.js
 Module.register("currentweather",{
 
 	// Default module config.
@@ -2074,7 +2074,7 @@ Module.register("currentweather",{
 
 });
 
-- weatherforecast
+- weatherforecast/weatherforecast.js
 Module.register("weatherforecast",{
 
 	// Default module config.
@@ -2502,7 +2502,7 @@ Module.register("weatherforecast",{
 	}
 });
 
-- MMM-Globe
+- MMM-Globe/MMM-Globe.js
 //홈 배경화면
 const loadImage = src =>
   new Promise(resolve => {
@@ -2610,7 +2610,7 @@ Module.register("MMM-Globe", {
   }
 });
 
-- newsfeed
+- newsfeed/newsfeed.js
 //뉴스 헤드라인 정보
 Module.register("newsfeed",{
 
@@ -3014,7 +3014,7 @@ Module.register("newsfeed",{
 });
 
 - HairStyle Choice 메뉴선택 / 헤어스타일 선택 / 헤어스타일 목록선택 / 각자사진뜨는 프레임
-CategoryHairstyle
+CategoryHairstyle/CategoryHairstyle.js
 //성별 구분
 Module.register("CategoryHairstyle",{
 	
@@ -3226,7 +3226,7 @@ Module.register("CategoryHairstyle",{
     }
 });	
 
-CategoryManhair
+CategoryManhair/CategoryManhair.js
 //남자 헤어 목록
 Module.register("CategoryManhair",{
 	
@@ -3519,7 +3519,7 @@ Module.register("CategoryManhair",{
 	}
 });	
 
-CategoryWomanhair
+CategoryWomanhair/CategoryWomanhair.js
 //여자 헤어 목록
 Module.register("CategoryWomanhair",{
 	
@@ -3807,7 +3807,7 @@ Module.register("CategoryWomanhair",{
 	}
 });	
 
-CategoryChoicehairMenu
+CategoryChoicehairMenu/CategoryChoicehairMenu.js
 //메뉴 조작
 Module.register("CategoryChoicehairMenu",{
 	
@@ -4047,15 +4047,15 @@ Module.register("CategoryChoicehairMenu",{
     }
 });	
 
-- Recommend HairStyle by Age
+///- Recommend HairStyle by Age
 
-- Before & After
+///- Before & After
 
-- Cut History
+///- Cut History
 
 - Entertainment 유튜브웹툰선택버튼 / 웹툰 / 유튜브 / 유튜브종류 선택모듈
-CategoryChoiceYoutube
-//주제별 목록
+CategoryChoiceYoutube/CategoryChoiceYoutube.js
+//유튜브 주제별 목록
 Module.register("CategoryChoiceYoutube",{
 	
 	requiresVersion: "2.1.0",
@@ -4383,7 +4383,7 @@ Module.register("CategoryChoiceYoutube",{
 	
 });	
 
-CategoryChoiceEntMenu
+CategoryChoiceEntMenu/CategoryChoiceEntMenu.js
 //유튜브, 웹툰 선택
 Module.register("CategoryChoiceEntMenu",{
 	
@@ -4561,7 +4561,7 @@ Module.register("CategoryChoiceEntMenu",{
 	},
 });
 
-MMM-EmbedYoutube1
+MMM-EmbedYoutube1/MMM-EmbedYoutube1.js
 Module.register("MMM-EmbedYoutube1", {
 	defaults: {
 		autoplay: false,
@@ -4631,7 +4631,7 @@ Module.register("MMM-EmbedYoutube1", {
 	}
 });
 
-MMM-EmbedYoutube2
+MMM-EmbedYoutube2/MMM-EmbedYoutube2.js
 Module.register("MMM-EmbedYoutube2", {
 	defaults: {
 		autoplay: false,
@@ -4758,7 +4758,7 @@ getDom: function() {
 });
 
 - Etc 영화정보 / 모듈 제어 / Hide All
-MMM-MovieInf
+MMM-MovieInf/MMM-MovieInfo.js
 //영화 상영 정보
 Module.register('MMM-MovieInfo', {
 
@@ -4954,7 +4954,7 @@ getDom: function() {
         }       
 });
 
-mm-hide-all
+mm-hide-all/mm-hide-all.js
 //모든 모듈 숨기기
 Module.register("mm-hide-all",{
 
@@ -4998,4 +4998,255 @@ Module.register("mm-hide-all",{
 		
 		return wrapper;
 	}
+});
+
+MMM-remote-control
+//모듈을 제어할 수 있는 실제 remote control
+Module.register("MMM-Remote-Control", {
+
+    requiresVersion: "2.4.0",
+
+    // Default module config.
+    defaults: {
+        customCommand: {}
+    },
+
+    // Define start sequence.
+    start: function() {
+        Log.info("Starting module: " + this.name);
+
+        this.settingsVersion = 2;
+
+        this.addresses = [];
+
+        this.brightness = 100;
+    },
+
+    getStyles: function() {
+        return ["remote-control.css"];
+    },
+
+    notificationReceived: function(notification, payload, sender) {
+        // Log.log(this.name + " received a module notification: " + notification + " from sender: " + sender.name);
+        if (notification === "DOM_OBJECTS_CREATED") {
+            this.sendSocketNotification("REQUEST_DEFAULT_SETTINGS");
+            this.sendCurrentData();
+        }
+        if (notification === "REMOTE_ACTION") {
+            console.log(payload);
+            this.sendSocketNotification(notification, payload);
+        }
+        if (notification === "REGISTER_API") {
+            this.sendSocketNotification(notification, payload);
+        }
+        if (notification === "USER_PRESENCE") {
+            this.sendSocketNotification(notification, payload);
+        }
+    },
+
+    // Override socket notification handler.
+    socketNotificationReceived: function(notification, payload) {
+        if (notification === "UPDATE") {
+            this.sendCurrentData();
+            if (notification === "IP_ADDRESSES") {}
+            this.addresses = payload;
+            if (this.data.position) {
+                this.updateDom();
+            }
+        }
+        if (notification === "USER_PRESENCE") {
+            this.sendNotification(notification, payload);
+        }
+        if (notification === "DEFAULT_SETTINGS") {
+            let settingsVersion = payload.settingsVersion;
+
+            if (settingsVersion === undefined) {
+                settingsVersion = 0;
+            }
+            if (settingsVersion < this.settingsVersion) {
+                if (settingsVersion === 0) {
+                    // move old data into moduleData
+                    payload = { moduleData: payload, brightness: 100 };
+                }
+            }
+
+            let moduleData = payload.moduleData;
+            let hideModules = {};
+            for (let i = 0; i < moduleData.length; i++) {
+                for (let k = 0; k < moduleData[i].lockStrings.length; k++) {
+                    if (moduleData[i].lockStrings[k].indexOf("MMM-Remote-Control") >= 0) {
+                        hideModules[moduleData[i].identifier] = true;
+                        break;
+                    }
+                }
+            }
+
+            let modules = MM.getModules();
+
+            let options = { lockString: this.identifier };
+
+            modules.enumerate(function(module) {
+                if (hideModules.hasOwnProperty(module.identifier)) {
+                    module.hide(0, options);
+                }
+            });
+
+            this.setBrightness(payload.brightness);
+        }
+        if (notification === "BRIGHTNESS") {
+            this.setBrightness(parseInt(payload));
+        }
+        if (notification === "REFRESH") {
+            document.location.reload();
+        }
+        if (notification === "RESTART") {
+            setTimeout(function() {
+                document.location.reload();
+                console.log('Delayed REFRESH');
+            }, 60000);
+        }
+        if (notification === "SHOW_ALERT") {
+            this.sendNotification(notification, payload);
+        }
+        if (notification === "HIDE_ALERT") {
+            this.sendNotification(notification);
+        }
+        if (notification === "HIDE" || notification === "SHOW" || notification === "TOGGLE") {
+            let options = { lockString: this.identifier };
+            if (payload.force) { options.force = true; }
+            let modules = (payload.module === "all") ? MM.getModules() :
+                MM.getModules().filter(m => {
+                    return (m.identifier === payload.module || m.name === payload.module);
+                });
+            if (typeof modules === "undefined") { return; }
+            modules.forEach((mod) => {
+                if (notification === "HIDE" ||
+                    (notification === "TOGGLE" && !mod.hidden)) {
+                    mod.hide(1000, options);
+                } else if (notification === "SHOW" ||
+                    (notification === "TOGGLE" && mod.hidden)) {
+                    mod.show(1000, options);
+                }
+            });
+        }
+        if (notification === "NOTIFICATION") {
+            this.sendNotification(payload.notification, payload.payload);
+        }
+    },
+
+    buildCssContent: function(brightness) {
+        var css = "";
+
+        var defaults = {
+            "body": parseInt("aa", 16),
+            "header": parseInt("99", 16),
+            ".dimmed": parseInt("66", 16),
+            ".normal": parseInt("99", 16),
+            ".bright": parseInt("ff", 16)
+        };
+
+        for (var key in defaults) {
+            var value = defaults[key] / 100 * brightness;
+            value = Math.round(value);
+            value = Math.min(value, 255);
+            if (value < 16) {
+                value = "0" + value.toString(16);
+            } else {
+                value = value.toString(16);
+            }
+            var extra = "";
+            if (key === "header") {
+                extra = "border-bottom: 1px solid #" + value + value + value + ";";
+            }
+            css += key + " { color: #" + value + value + value + "; " + extra + "} ";
+        }
+        return css;
+    },
+
+    setBrightness: function(newBrightnessValue) {
+        if (newBrightnessValue < 10) {
+            newBrightnessValue = 10;
+        }
+        if (newBrightnessValue > 200) {
+            newBrightnessValue = 200;
+        }
+
+        this.brightness = newBrightnessValue;
+
+        var style = document.getElementById('remote-control-styles');
+        if (!style) {
+            // create custom css if not existing
+            style = document.createElement('style');
+            style.type = 'text/css';
+            style.id = 'remote-control-styles';
+            var parent = document.getElementsByTagName('head')[0];
+            parent.appendChild(style);
+        }
+
+        if (newBrightnessValue < 100) {
+            style.innerHTML = "";
+            this.createOverlay(newBrightnessValue);
+            return;
+        }
+        if (newBrightnessValue > 100) {
+            style.innerHTML = this.buildCssContent(newBrightnessValue);
+            this.removeOverlay();
+            return;
+        }
+        // default brightness
+        style.innerHTML = "";
+        this.removeOverlay();
+    },
+
+    createOverlay: function(brightness) {
+        var overlay = document.getElementById('remote-control-overlay');
+        if (!overlay) {
+            // if not existing, create overlay
+            overlay = document.createElement("div");
+            overlay.id = "remote-control-overlay";
+            var parent = document.body;
+            parent.insertBefore(overlay, parent.firstChild);
+        }
+        var bgColor = "rgba(0,0,0," + (100 - brightness) / 100 + ")";
+        overlay.style.backgroundColor = bgColor;
+    },
+
+    removeOverlay: function() {
+        var overlay = document.getElementById('remote-control-overlay');
+        if (overlay) {
+            var parent = document.body;
+            parent.removeChild(overlay);
+        }
+    },
+
+    getDom: function() {
+        var wrapper = document.createElement("div");
+        if (this.addresses.length === 0) {
+            this.addresses = ["127.0.0.1"];
+        }
+        wrapper.innerHTML = "http://127.0.0.1:9000/remote.html";
+        wrapper.className = "normal xsmall";
+        return wrapper;
+    },
+
+    sendCurrentData: function() {
+        var self = this;
+
+        var modules = MM.getModules();
+        var currentModuleData = [];
+        modules.enumerate(function(module) {
+            let modData = Object.assign({}, module.data);
+            modData.hidden = module.hidden;
+            modData.lockStrings = module.lockStrings;
+            modData.config = module.config;
+            currentModuleData.push(modData);
+        });
+        var configData = {
+            moduleData: currentModuleData,
+            brightness: this.brightness,
+            settingsVersion: this.settingsVersion,
+            remoteConfig: this.config
+        };
+        this.sendSocketNotification("CURRENT_STATUS", configData);
+    }
 });
