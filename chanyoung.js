@@ -2303,5 +2303,108 @@ Module.register("MMM-HistoryImage3", {
 
 });
 
+//MMM-DeleteImage/MMM-DeleteImage.js
+//사진을 지우기의 인터페이스
+/* global Module */
+
+/* Magic Mirror
+ * Module: MM Hide All
+ *
+ * By EoF https://forum.magicmirror.builders/user/eof
+ * MIT Licensed.
+ */
+var DeleteImageS;
+Module.register("MMM-DeleteImage",{
+	defaults: {},
+    start: function (){
+        DeleteImageS = this;
+    },
+	getScripts: function() {
+		return ["modules/MMM-DeleteImage/js/jquery.js"];
+	},
+
+	getStyles: function() {
+		return ["MMM-DeleteImage-style.css"];
+	},
+	
+	getDom: function() {
+		var wrapper = document.createElement("div");
+		var button = document.createElement("div");
+		var text = document.createElement("span");
+		var overlay = document.createElement("div");
+		var hidden = true;
+		
+		overlay.className = "paint-it-black";
+		
+		button.className = "hide-toggle";
+		button.appendChild(text);
+		text.innerHTML = "끝내기";
+		
+		wrapper.appendChild(button);
+		wrapper.appendChild(overlay);
+		
+		$(button).on("click", function(){
+			if(hidden){
+
+				DeleteImageS.sendNotification("REMOTE_ACTION", {action: "MONITOROFF"});
+				DeleteImageS.sendNotification("REMOTE_ACTION", {action: "REFRESH"});
+				DeleteImageS.sendNotification("setDefault")
+				DeleteImageS.sendSocketNotification("DELETE")
+				$(text).html('접속');
+				hidden = false;
+			}else{
+				$(overlay).fadeOut(1000);
+				$(button).fadeTo(1000, 1);
+				$(text).html('끝내기');
+				hidden = true;
+			}
+		});
+		
+		return wrapper;
+	}
+});
+
+//MMM-DeleteImage/Delete.py
+//실제로 특정사진을 지우는 파이썬코드
+/*
+import os
+
+def removeExtensionFile(filePath, fileExtension):
+    if os.path.exists(filePath):
+        for file in os.scandir(filePath):
+            if file.name.endswith(fileExtension):
+                os.remove(file.path)
+        return 'Remove File:' + fileExtension
+    else:
+        return 'Directory Not Found'
+print(removeExtensionFile('C:/BeautyM/modules/MMM-BeforeAfter/minsoo','.png'))
+print(removeExtensionFile('C:/BeautyM/modules/MMM-BeforeAfter/before','.png'))
+*/
+
+//MMM-Testpython/node_helper.js
+//파이썬코드와 js연결코드
+var NodeHelper = require("node_helper");
+var {PythonShell} = require('python-shell');
+var socketDeleteImage;
+module.exports = NodeHelper.create({
+  start: function() {
+    socketDeleteImage=this;
+    console.log(this.name+"node_helper started")
+  },
+  
+  socketNotificationReceived: function(notification, payload) {
+    switch(notification) {
+      case "DELETE":
+        console.log("notification : " + notification)
+	    PythonShell.run('C:/BeautyM/modules/MMM-DeleteImage/Delete.py', null, function (err, result) {
+            if (err) throw err;
+            console.log("Delete Success" + result);          
+            //socketDeleteImage.sendSocketNotification("I_DID",result);
+          });
+	       
+        break
+    }
+  }
+}) 
 
 
